@@ -1,0 +1,17 @@
+[package]
+name = "crunch"
+version = "0.1.0"
+edition = "2024"
+authors = ["byteoxo byteoxo@qiya.io"]
+keywords = ["ffmpeg", "compression", "media", "video", "image", "UI", "UI Designer"]
+categories = ["command-line-utilities", "multimedia", "web-development", "game-development"]
+repository = "https://github.com/byteoxo/crunch"
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.53", features = ["derive"] }
+indicatif = { version = "0.18.3", features = ["rayon"] }
+rayon = "1.11.0"
+tempfile = "3"
+walkdir = "2.5.0"
