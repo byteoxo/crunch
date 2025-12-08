@@ -1,0 +1,38 @@
+name: Build Linux
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Download FFmpeg
+        run: |
+          mkdir -p assets
+          
+          ffmpeg_url="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
+          curl -L "$ffmpeg_url" -o ffmpeg.tar.xz
+          
+          tar -xf ffmpeg.tar.xz
+          cp ffmpeg-master-latest-linux64-gpl/bin/ffmpeg assets/ffmpeg
+          
+          rm -rf ffmpeg-master-latest-linux64-gpl ffmpeg.tar.xz
+          
+          echo "FFmpeg downloaded:"
+          ls -la assets/ffmpeg
+        shell: bash
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: crunch
+          path: target/release/crunch
