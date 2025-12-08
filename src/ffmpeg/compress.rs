@@ -17,7 +17,7 @@ impl BaseCompressOptions {
             "video" => "webm".to_string(),
             "image" => "webp".to_string(),
             "audio" => "mp3".to_string(),
-            _ => panic!("Unknow media type")
+            _ => panic!("Unknow media type"),
         };
         Self {
             output_extension,

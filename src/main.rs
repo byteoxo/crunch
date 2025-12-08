@@ -115,7 +115,10 @@ fn process_audios(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions)
         return Ok(());
     }
 
-    println!("Found {} audios to compress to {}", count, base_options.output_extension);
+    println!(
+        "Found {} audios to compress to {}",
+        count, base_options.output_extension
+    );
 
     let options = AudioCompressOptions::with_base(base_options);
     compress_all_audios(ffmpeg, &audios, &options)?;
