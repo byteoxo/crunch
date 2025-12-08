@@ -1,6 +1,6 @@
-use anyhow::{Context, Result, bail};
-use indicatif::{ParallelProgressIterator};
 use super::progress_bar::init_progress_bar;
+use anyhow::{Context, Result, bail};
+use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -8,6 +8,22 @@ use std::process::Command;
 pub struct BaseCompressOptions {
     pub output_extension: String,
     pub output_prefix: Option<String>,
+}
+
+impl BaseCompressOptions {
+    /// mt: media_type
+    pub fn new_with(mt: &str) -> Self {
+        let output_extension = match mt {
+            "video" => "webm".to_string(),
+            "image" => "webp".to_string(),
+            "audio" => "mp3".to_string(),
+            _ => panic!("Unknow media type")
+        };
+        Self {
+            output_extension,
+            output_prefix: None,
+        }
+    }
 }
 
 pub struct ImageCompressOptions {
@@ -30,14 +46,11 @@ impl Default for ImageCompressOptions {
 }
 
 impl ImageCompressOptions {
-    pub fn set_output_ext(&mut self, ext: String) -> Self {
+    pub fn with_base(base: BaseCompressOptions) -> Self {
         Self {
             quality: 1,
             compression_level: 6,
-            base: BaseCompressOptions {
-                output_extension: ext,
-                output_prefix: Some("compressed".to_string()),
-            },
+            base,
         }
     }
 }
@@ -64,15 +77,12 @@ impl Default for VideoCompressOptions {
 }
 
 impl VideoCompressOptions {
-    pub fn set_output_ext(&mut self, ext: String) -> Self {
+    pub fn with_base(base: BaseCompressOptions) -> Self {
         Self {
             crf: 42,
             preset: "good".to_string(),
             video_codec: "libvpx-vp9".to_string(),
-            base: BaseCompressOptions {
-                output_extension: ext,
-                output_prefix: Some("compressed".to_string()),
-            },
+            base,
         }
     }
 }
@@ -101,16 +111,13 @@ impl Default for AudioCompressOptions {
 }
 
 impl AudioCompressOptions {
-    pub fn set_output_ext(&mut self, ext: String) -> Self {
+    pub fn with_base(base: BaseCompressOptions) -> Self {
         Self {
             bitrate: "64k".to_string(),
             audio_codec: "libmp3lame".to_string(),
             channels: None,
             sample_rate: None,
-            base: BaseCompressOptions {
-                output_extension: ext,
-                output_prefix: Some("compressed".to_string()),
-            },
+            base,
         }
     }
 
@@ -151,7 +158,16 @@ pub fn compress_audio(
     };
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let output = parent.join(new_filename);
+    let mut output = parent.join(new_filename);
+
+    // Avoid overwriting input file.
+    if input == output {
+        let new_filename = format!(
+            "compressed_{}{}.{}",
+            prefix, stem, options.base.output_extension
+        );
+        output = parent.join(new_filename);
+    }
 
     let mut args = vec![
         "-i".to_string(),
@@ -247,7 +263,16 @@ pub fn compress_image(
     };
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let output = parent.join(new_filename);
+    let mut output = parent.join(new_filename);
+
+    // Avoid overwriting output path.
+    if input == output {
+        let new_filename = format!(
+            "compressed_{}{}.{}",
+            prefix, stem, options.base.output_extension
+        );
+        output = parent.join(new_filename);
+    }
 
     let result = Command::new(ffmpeg)
         .args([
@@ -333,7 +358,16 @@ pub fn compress_video(
         .unwrap_or("output");
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let output = parent.join(new_filename);
+    let mut output = parent.join(new_filename);
+
+    // Avoid overwriting output path
+    if input == output {
+        let new_filename = format!(
+            "compressed_{}{}.{}",
+            prefix, stem, options.base.output_extension
+        );
+        output = parent.join(new_filename);
+    }
 
     //  Ensure input path is valid
     let input_str = input.to_str().context("Invalid input path")?;

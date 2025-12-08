@@ -5,8 +5,8 @@ mod utilities;
 use anyhow::Result;
 use clap::Parser;
 use ffmpeg::{
-    AudioCompressOptions, ImageCompressOptions, VideoCompressOptions, compress_all_audios,
-    compress_all_images, compress_all_videos, get_ffmpeg,
+    AudioCompressOptions, BaseCompressOptions, ImageCompressOptions, VideoCompressOptions,
+    compress_all_audios, compress_all_images, compress_all_videos, get_ffmpeg,
 };
 use std::path::Path;
 use utilities::{get_audio_files, get_image_files, get_video_files};
@@ -48,7 +48,7 @@ struct Args {
     #[arg(short = 'p', long, num_args = 0..=1, default_missing_value = ".")]
     path: Option<String>,
 
-    #[arg(long, num_args= 0..1, default_missing_value = "compressed")]
+    #[arg(long, num_args= 0..=1, default_missing_value = "compressed")]
     prefix: Option<String>,
 
     /// Video format. Use --videos for default(webm) or --videos=FORMAT
@@ -64,7 +64,7 @@ struct Args {
     audios: Option<String>,
 }
 
-fn process_images(ffmpeg: &Path, path: &Path, format: &str) -> Result<()> {
+fn process_images(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions) -> Result<()> {
     let images = get_image_files(path);
     let count = images.len();
 
@@ -73,16 +73,19 @@ fn process_images(ffmpeg: &Path, path: &Path, format: &str) -> Result<()> {
         return Ok(());
     }
 
-    println!("Found {} images to compress to {}", count, format);
+    println!(
+        "Found {} images to compress to {}",
+        count, base_options.output_extension
+    );
 
-    let options = ImageCompressOptions::default().set_output_ext(format.into());
+    let options = ImageCompressOptions::with_base(base_options);
     compress_all_images(ffmpeg, &images, &options)?;
 
     println!("Successfully compressed {} images", count);
     Ok(())
 }
 
-fn process_videos(ffmpeg: &Path, path: &Path, format: &str) -> Result<()> {
+fn process_videos(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions) -> Result<()> {
     let videos = get_video_files(path);
     let count = videos.len();
 
@@ -91,16 +94,19 @@ fn process_videos(ffmpeg: &Path, path: &Path, format: &str) -> Result<()> {
         return Ok(());
     }
 
-    println!("Found {} videos to compress to {}", count, format);
+    println!(
+        "Found {} videos to compress to {}",
+        count, base_options.output_extension
+    );
 
-    let options = VideoCompressOptions::default().set_output_ext(format.into());
+    let options = VideoCompressOptions::with_base(base_options);
     compress_all_videos(ffmpeg, &videos, &options)?;
 
     println!("Successfully compressed {} videos", count);
     Ok(())
 }
 
-fn process_audios(ffmpeg: &Path, path: &Path, format: &str) -> Result<()> {
+fn process_audios(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions) -> Result<()> {
     let audios = get_audio_files(path);
     let count = audios.len();
 
@@ -109,9 +115,9 @@ fn process_audios(ffmpeg: &Path, path: &Path, format: &str) -> Result<()> {
         return Ok(());
     }
 
-    println!("Found {} audios to compress to {}", count, format);
+    println!("Found {} audios to compress to {}", count, base_options.output_extension);
 
-    let options = AudioCompressOptions::default().set_output_ext(format.into());
+    let options = AudioCompressOptions::with_base(base_options);
     compress_all_audios(ffmpeg, &audios, &options)?;
 
     println!("Successfully compressed {} audios", count);
@@ -131,30 +137,39 @@ fn main() -> Result<()> {
     }
 
     // Determine what to process
-    let (is_process_videos, video_fmt) = if args.default {
-        (true, "webm".to_string())
+    let (is_process_videos, video_base_options) = if args.default {
+        (true, BaseCompressOptions::new_with("video"))
     } else {
         (
             args.videos.is_some(),
-            args.videos.clone().unwrap_or_default(),
+            BaseCompressOptions {
+                output_extension: args.videos.clone().unwrap_or_default(),
+                output_prefix: args.prefix.clone(),
+            },
         )
     };
 
-    let (is_process_images, image_fmt) = if args.default {
-        (true, "webp".to_string())
+    let (is_process_images, image_base_options) = if args.default {
+        (true, BaseCompressOptions::new_with("image"))
     } else {
         (
             args.images.is_some(),
-            args.images.clone().unwrap_or_default(),
+            BaseCompressOptions {
+                output_extension: args.images.clone().unwrap_or_default(),
+                output_prefix: args.prefix.clone(),
+            },
         )
     };
 
-    let (is_process_audios, audio_fmt) = if args.default {
-        (true, "mp3".to_string())
+    let (is_process_audios, audio_base_options) = if args.default {
+        (true, BaseCompressOptions::new_with("audio"))
     } else {
         (
             args.audios.is_some(),
-            args.audios.clone().unwrap_or_default(),
+            BaseCompressOptions {
+                output_extension: args.audios.clone().unwrap_or_default(),
+                output_prefix: args.prefix.clone(),
+            },
         )
     };
 
@@ -166,15 +181,15 @@ fn main() -> Result<()> {
 
     // Process media
     if is_process_images {
-        process_images(&ffmpeg, path, &image_fmt)?;
+        process_images(&ffmpeg, path, image_base_options)?;
     }
 
     if is_process_videos {
-        process_videos(&ffmpeg, path, &video_fmt)?;
+        process_videos(&ffmpeg, path, video_base_options)?;
     }
 
     if is_process_audios {
-        process_audios(&ffmpeg, path, &audio_fmt)?;
+        process_audios(&ffmpeg, path, audio_base_options)?;
     }
 
     Ok(())

@@ -1,11 +1,11 @@
 mod compress;
-mod progress_bar; 
+mod progress_bar;
 
 use crate::consts::FFMPEG_BINARY;
 use anyhow::Result;
 pub use compress::{
-    AudioCompressOptions, ImageCompressOptions, VideoCompressOptions, compress_all_audios,
-    compress_all_images, compress_all_videos,
+    AudioCompressOptions, BaseCompressOptions, ImageCompressOptions, VideoCompressOptions,
+    compress_all_audios, compress_all_images, compress_all_videos,
 };
 use std::fs;
 use std::io::Write;
