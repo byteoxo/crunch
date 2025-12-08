@@ -20,7 +20,7 @@ jobs:
           curl -L "$ffmpeg_url" -o ffmpeg.tar.xz
           
           tar -xf ffmpeg.tar.xz
-          cp ffmpeg-master-latest-linux64-gpl/bin/ffmpeg assets/ffmpeg
+          cp ffmpeg-master-latest-linux64-gpl/bin/ffmpeg assets/ffmpeg-linux
           
           rm -rf ffmpeg-master-latest-linux64-gpl ffmpeg.tar.xz
           

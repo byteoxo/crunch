@@ -18,7 +18,7 @@ jobs:
           - os: ubuntu-latest
             ffmpeg_url: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz
             ffmpeg_dir: ffmpeg-master-latest-linux64-gpl
-            ffmpeg_bin: ffmpeg
+            ffmpeg_bin: ffmpeg-linux
             artifact_name: crunch-linux
             artifact_path: target/release/crunch
 
