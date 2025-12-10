@@ -48,6 +48,10 @@ struct Args {
     #[arg(short = 'p', long, num_args = 0..=1, default_missing_value = ".")]
     path: Option<String>,
 
+    /// Compress leve
+    #[arg(long, num_args = 0..=1, default_missing_value="midium")]
+    level: Option<String>,
+
     #[arg(long, num_args= 0..=1, default_missing_value = "compressed")]
     prefix: Option<String>,
 
@@ -148,6 +152,7 @@ fn main() -> Result<()> {
             BaseCompressOptions {
                 output_extension: args.videos.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
+                level: args.level.clone(),
             },
         )
     };
@@ -160,6 +165,7 @@ fn main() -> Result<()> {
             BaseCompressOptions {
                 output_extension: args.images.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
+                level: args.level.clone(),
             },
         )
     };
@@ -172,6 +178,7 @@ fn main() -> Result<()> {
             BaseCompressOptions {
                 output_extension: args.audios.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
+                level: args.level.clone(),
             },
         )
     };

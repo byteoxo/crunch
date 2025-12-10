@@ -8,6 +8,7 @@ use std::process::Command;
 pub struct BaseCompressOptions {
     pub output_extension: String,
     pub output_prefix: Option<String>,
+    pub level: Option<String>,
 }
 
 impl BaseCompressOptions {
@@ -22,6 +23,7 @@ impl BaseCompressOptions {
         Self {
             output_extension,
             output_prefix: None,
+            level: Some("medium".to_string()),
         }
     }
 }
@@ -40,6 +42,7 @@ impl Default for ImageCompressOptions {
             base: BaseCompressOptions {
                 output_extension: "webp".into(),
                 output_prefix: Some("compressed".to_string()),
+                level: Some("medium".to_string()),
             },
         }
     }
@@ -47,9 +50,18 @@ impl Default for ImageCompressOptions {
 
 impl ImageCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
+        // quality: lower = better quality (webp qscale)
+        // compression_level: 0-6, higher = more compression effort
+        let (quality, compression_level) = match base.level.as_deref() {
+            Some("low") => (5, 4),     // Low compression = high quality
+            Some("medium") => (30, 5), // Balanced
+            Some("high") => (60, 6),   // High compression = smaller size
+            _ => (30, 5),              // Default to medium
+        };
+
         Self {
-            quality: 1,
-            compression_level: 6,
+            quality,
+            compression_level,
             base,
         }
     }
@@ -71,6 +83,7 @@ impl Default for VideoCompressOptions {
             base: BaseCompressOptions {
                 output_extension: "webm".to_string(),
                 output_prefix: Some("compressed".to_string()),
+                level: Some("medium".to_string()),
             },
         }
     }
@@ -78,9 +91,18 @@ impl Default for VideoCompressOptions {
 
 impl VideoCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
+        // crf: 0-63 for VP9, lower = better quality
+        // preset: "good", "best", "realtime" for libvpx-vp9
+        let (crf, preset) = match base.level.as_deref() {
+            Some("low") => (24, "good".to_string()), // Low compression = high quality
+            Some("medium") => (33, "good".to_string()), // Balanced
+            Some("high") => (42, "good".to_string()), // High compression = smaller size
+            _ => (33, "good".to_string()),
+        };
+
         Self {
-            crf: 42,
-            preset: "good".to_string(),
+            crf,
+            preset,
             video_codec: "libvpx-vp9".to_string(),
             base,
         }
@@ -105,6 +127,7 @@ impl Default for AudioCompressOptions {
             base: BaseCompressOptions {
                 output_extension: "mp3".to_string(),
                 output_prefix: Some("compressed".to_string()),
+                level: Some("medium".to_string()),
             },
         }
     }
@@ -112,8 +135,16 @@ impl Default for AudioCompressOptions {
 
 impl AudioCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
+        // bitrate: higher = better quality, larger file
+        let bitrate = match base.level.as_deref() {
+            Some("low") => "192k".to_string(), // Low compression = high quality
+            Some("medium") => "128k".to_string(), // Balanced
+            Some("high") => "64k".to_string(), // High compression = smaller size
+            _ => "128k".to_string(),
+        };
+
         Self {
-            bitrate: "64k".to_string(),
+            bitrate,
             audio_codec: "libmp3lame".to_string(),
             channels: None,
             sample_rate: None,
@@ -131,6 +162,7 @@ impl AudioCompressOptions {
             base: BaseCompressOptions {
                 output_prefix: Some("compressed".to_string()),
                 output_extension: self.base.output_extension.clone(),
+                level: Some("midium".to_string()),
             },
         }
     }
