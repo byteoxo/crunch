@@ -42,10 +42,10 @@ Download the appropriate binary for your platform from the [Releases](https://gi
 
 | Platform | File |
 |----------|------|
-| macOS (Intel) | `crunch-macos-x64` |
-| macOS (Apple Silicon) | `crunch-macos-arm64` |
-| Linux (x64) | `crunch-linux-x64` |
-| Windows (x64) | `crunch-windows-x64.exe` |
+| macOS (Intel) | `crunch-macos.zip` |
+| macOS (Apple Silicon) | `crunch-macos.zip` |
+| Linux (x64) | `crunch-linux.zip` |
+| Windows (x64) | `crunch-windows.zip` |
 
 ### Step 2: Add to PATH
 
@@ -53,8 +53,8 @@ Download the appropriate binary for your platform from the [Releases](https://gi
 
 ```bash
 # Move the binary to a directory in your PATH
-chmod +x crunch-*
-sudo mv crunch-* /usr/local/bin/crunch
+chmod +x crunch
+sudo mv crunch /usr/local/bin/crunch
 
 # Or add to your user bin directory
 mkdir -p ~/.local/bin
@@ -68,7 +68,7 @@ export PATH="$HOME/.local/bin:$PATH"
 #### Windows
 
 1. Create a directory for the binary, e.g., `C:\Program Files\crunch\`
-2. Move `crunch-windows-x64.exe` to that directory and rename it to `crunch.exe`
+2. Move `crunch.exe` to that directory and rename it to `crunch.exe`
 3. Add the directory to your system PATH:
    - Open **Settings** → **System** → **About** → **Advanced system settings**
    - Click **Environment Variables**
@@ -97,8 +97,8 @@ crunch --videos
 # Compress videos and images with specific formats
 crunch --videos=mp4 --images=avif
 
-# Specify input/output directories
-crunch --default -i ./raw -o ./compressed
+# Specify compression directories
+crunch --default --path=./media-folder/
 ```
 
 ### Command Line Options
