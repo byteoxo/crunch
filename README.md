@@ -2,7 +2,7 @@
 
 # 🦀 Crunch
 
-**A blazingly fast, parallel media compression tool powered by FFmpeg**
+**A easiest, blazingly fast, parallel media compression tool for normal people**
 
 [![Crates.io](https://img.shields.io/crates/v/crunch.svg)](https://crates.io/crates/crunch)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -13,7 +13,6 @@
 [Usage](#usage) •
 [Examples](#examples) •
 [Configuration](#configuration) •
-[Benchmarks](#benchmarks) •
 [Contributing](#contributing)
 
 </div>
@@ -35,54 +34,54 @@
 ---
 
 ## 📦 Installation
+No external FFmpeg installation required — Crunch includes embedded FFmpeg binaries!
 
-### Prerequisites
+### Step 1: Download
 
-Ensure FFmpeg is installed on your system:
+Download the appropriate binary for your platform from the [Releases](https://github.com/byteoxo/crunch/releases/tag/v0.1.0) page:
 
-```bash
-# macOS
-brew install ffmpeg
+| Platform | File |
+|----------|------|
+| macOS (Intel) | `crunch-macos-x64` |
+| macOS (Apple Silicon) | `crunch-macos-arm64` |
+| Linux (x64) | `crunch-linux-x64` |
+| Windows (x64) | `crunch-windows-x64.exe` |
 
-# Ubuntu/Debian
-sudo apt install ffmpeg
+### Step 2: Add to PATH
 
-# Arch Linux
-sudo pacman -S ffmpeg
-
-# Windows (using Chocolatey)
-choco install ffmpeg
-```
-
-### Install Crunch
-
-#### From Crates.io (Recommended)
+#### macOS / Linux
 
 ```bash
-cargo install crunch
+# Move the binary to a directory in your PATH
+chmod +x crunch-*
+sudo mv crunch-* /usr/local/bin/crunch
+
+# Or add to your user bin directory
+mkdir -p ~/.local/bin
+mv crunch-* ~/.local/bin/crunch
+chmod +x ~/.local/bin/crunch
+
+# Add to PATH (add this line to ~/.bashrc or ~/.zshrc)
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-#### From Source
+#### Windows
+
+1. Create a directory for the binary, e.g., `C:\Program Files\crunch\`
+2. Move `crunch-windows-x64.exe` to that directory and rename it to `crunch.exe`
+3. Add the directory to your system PATH:
+   - Open **Settings** → **System** → **About** → **Advanced system settings**
+   - Click **Environment Variables**
+   - Under **System variables**, find and select **Path**, then click **Edit**
+   - Click **New** and add `C:\Program Files\crunch\`
+   - Click **OK** to save
+
+### Step 3: Verify Installation
 
 ```bash
-git clone https://github.com/yourname/crunch.git
-cd crunch
-cargo build --release
-sudo cp target/release/crunch /usr/local/bin/
+crunch --version
+crunch --help
 ```
-
-#### Pre-built Binaries
-
-Download from [GitHub Releases](https://github.com/yourname/crunch/releases):
-
-| Platform | Download |
-|----------|----------|
-| Linux (x64) | [crunch-linux-x64.tar.gz](https://github.com/yourname/crunch/releases) |
-| macOS (x64) | [crunch-macos-x64.tar.gz](https://github.com/yourname/crunch/releases) |
-| macOS (ARM) | [crunch-macos-arm64.tar.gz](https://github.com/yourname/crunch/releases) |
-| Windows | [crunch-windows-x64.zip](https://github.com/yourname/crunch/releases) |
-
----
 
 ## 🚀 Usage
 
@@ -108,27 +107,45 @@ crunch --default -i ./raw -o ./compressed
 Usage: crunch [OPTIONS]
 
 Options:
-      --default                Use default settings (videos→webm, images→webp, audio→opus)
-      --videos [FORMAT]        Compress videos [default: webm]
-      --images [FORMAT]        Compress images [default: webp]
-      --audio [FORMAT]         Compress audio [default: opus]
-  -i, --input <DIR>            Input directory [default: ./]
-  -o, --output <DIR>           Output directory [default: ./output]
-  -j, --jobs <NUM>             Number of parallel jobs [default: CPU cores]
-  -r, --recursive              Process subdirectories recursively
-      --video-quality <CRF>    Video quality 0-51 (lower=better) [default: 28]
-      --image-quality <Q>      Image quality 1-100 (higher=better) [default: 80]
-      --audio-bitrate <RATE>   Audio bitrate [default: 128k]
-  -y, --overwrite              Overwrite existing files
-      --dry-run                Preview without executing
-      --keep                   Keep original files
-  -v, --verbose...             Increase verbosity (-v, -vv, -vvv)
-  -q, --quiet                  Suppress output except errors
-      --exclude <PATTERN>      Exclude files matching pattern
-  -h, --help                   Print help
-  -V, --version                Print version
-```
+      --default
+          Use default settings (videos=webm, images=webp)
 
+  -p, --path [<PATH>]
+          Path to process (default: current directory)
+
+      --level [<LEVEL>]
+          Compress leve
+
+      --prefix [<PREFIX>]
+
+
+      --videos [<VIDEOS>]
+          Video format. Use --videos for default(webm) or --videos=FORMAT
+
+      --images [<IMAGES>]
+          Image format. Use --images for default(webp) or --images=FORMAT
+
+      --audios [<AUDIOS>]
+          Audios format. Use --audios for default(webp) or --audios=FORMAT
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+EXAMPLES:
+    crunch --default                     Compress all media with default formats (video: webm, image: webp, audio: mp3)
+    crunch --videos                      Compress videos only (default: webm)
+    crunch --videos=webm                 Compress videos to webm
+    crunch --images=webp                 Compress images to webp
+    crunch --audio=mp3                   Compress audios to mp3
+
+SUPPORTED FORMATS:
+    Videos: webm, mp4, mkv, av1, etc.
+    Images: webp, avif, jpg, png, etc.
+    Audio:  opus, mp3, aac, flac, etc.
+```
 ---
 
 ## 📖 Examples
@@ -140,145 +157,17 @@ Options:
 crunch --videos
 
 # Compress with maximum quality
-crunch --videos --video-quality 18
+crunch --videos --level=low
 
 # Fast compression with lower quality
-crunch --videos --video-quality 35
-```
+crunch --videos --level=high
 
-### Advanced Usage
-
-```bash
 # Full compression pipeline with custom settings
 crunch \
   --videos=mp4 \
   --images=avif \
   --audio=opus \
-  --video-quality 24 \
-  --image-quality 85 \
-  --audio-bitrate 192k \
-  -i ~/media/raw \
-  -o ~/media/compressed \
-  -r \
-  -j 8
-
-# Preview what would happen (dry run)
-crunch --default --dry-run -r
-
-# Compress but exclude certain files
-crunch --videos --exclude "*.tmp" --exclude "*_backup*"
-
-# Ultra verbose mode for debugging
-crunch --default -vvv
 ```
-
-### Format-Specific Examples
-
-```bash
-# Video: High-quality H.265/MP4 for compatibility
-crunch --videos=mp4 --video-quality 22
-
-# Video: Maximum compression with AV1
-crunch --videos=av1 --video-quality 30
-
-# Images: Best compression with AVIF
-crunch --images=avif --image-quality 75
-
-# Audio: High-quality Opus
-crunch --audio=opus --audio-bitrate 256k
-```
-
----
-
-## ⚙️ Configuration
-
-### Supported Formats
-
-| Type | Input Formats | Output Formats |
-|------|---------------|----------------|
-| **Video** | mp4, mkv, avi, mov, wmv, flv, webm | webm, mp4, mkv, av1 |
-| **Image** | jpg, jpeg, png, bmp, tiff, gif | webp, avif, jpg, png |
-| **Audio** | mp3, wav, flac, aac, ogg, m4a | opus, mp3, aac, flac |
-
-### Quality Guidelines
-
-#### Video Quality (CRF)
-
-| CRF Value | Quality | Use Case |
-|-----------|---------|----------|
-| 18-22 | High | Archival, professional |
-| 23-28 | Medium | General purpose (default: 28) |
-| 29-35 | Low | Web, streaming |
-| 36-51 | Very Low | Thumbnails, previews |
-
-#### Image Quality
-
-| Quality | Compression | Use Case |
-|---------|-------------|----------|
-| 90-100 | Low | Photography, print |
-| 75-89 | Medium | General purpose (default: 80) |
-| 50-74 | High | Web thumbnails |
-| < 50 | Very High | Placeholders |
-
-### Environment Variables
-
-```bash
-# Set default number of parallel jobs
-export CRUNCH_JOBS=8
-
-# Set default output directory
-export CRUNCH_OUTPUT=~/compressed
-
-# Set FFmpeg path (if not in PATH)
-export FFMPEG_PATH=/usr/local/bin/ffmpeg
-```
-
-### Config File (Optional)
-
-Create `~/.config/crunch/config.toml`:
-
-```toml
-[defaults]
-jobs = 8
-recursive = true
-keep = true
-
-[video]
-format = "mp4"
-quality = 24
-
-[image]
-format = "webp"
-quality = 85
-
-[audio]
-format = "opus"
-bitrate = "192k"
-```
-
----
-
-## 📊 Benchmarks
-
-Tested on MacBook Pro M2 (10 cores, 16GB RAM)
-
-### Video Compression (100 files, 10GB total)
-
-| Tool | Time | Output Size | Compression Ratio |
-|------|------|-------------|-------------------|
-| **Crunch** | **2m 34s** | **1.2GB** | **88%** |
-| HandBrake | 8m 12s | 1.3GB | 87% |
-| FFmpeg (single) | 15m 45s | 1.2GB | 88% |
-
-### Image Compression (1000 images, 2GB total)
-
-| Tool | Time | Output Size | Compression Ratio |
-|------|------|-------------|-------------------|
-| **Crunch** | **45s** | **180MB** | **91%** |
-| ImageMagick | 3m 20s | 200MB | 90% |
-| squoosh-cli | 2m 10s | 175MB | 91% |
-
----
 
 ## 🏗️ Architecture
 
@@ -316,9 +205,6 @@ cd crunch
 # Install development dependencies
 cargo build
 
-# Run tests
-cargo test
-
 # Run with debug output
 RUST_LOG=debug cargo run -- --default
 
@@ -349,7 +235,6 @@ test: add compression quality tests
 - [ ] Web UI dashboard
 - [ ] Cloud storage integration (S3, GCS)
 - [ ] Custom FFmpeg preset files
-- [ ] Subtitle extraction/embedding
 
 ---
 
