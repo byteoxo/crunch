@@ -98,7 +98,7 @@ crunch --videos
 crunch --videos=mp4 --images=avif
 
 # Specify compression directories
-crunch --default --path=./media-folder/
+crunch --default --input=./media-folder/
 ```
 
 ### Command Line Options

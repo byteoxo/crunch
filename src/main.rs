@@ -45,8 +45,8 @@ struct Args {
     default: bool,
 
     /// Path to process (default: current directory)
-    #[arg(short = 'p', long, num_args = 0..=1, default_missing_value = ".")]
-    path: Option<String>,
+    #[arg(short = 'i', long, num_args = 0..=1, default_missing_value = ".")]
+    input: Option<String>,
 
     /// Compress leve
     #[arg(long, num_args = 0..=1, default_missing_value="midium")]
@@ -136,7 +136,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     // Resolve the working path
-    let path_str = args.path.as_deref().unwrap_or("./");
+    let path_str = args.input.as_deref().unwrap_or("./");
     let path = Path::new(path_str);
 
     if !path.exists() {
