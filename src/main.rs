@@ -45,11 +45,14 @@ struct Args {
     default: bool,
 
     /// Path to process (default: current directory)
-    #[arg(short = 'i', long, num_args = 0..=1, default_missing_value = ".")]
+    #[arg(short = 'i', long, num_args = 0..=1, default_value = ".", default_missing_value = ".")]
     input_path: PathBuf,
 
+    #[arg(short = 'o', long, num_args = 0..=1, default_value = "./crunch_compressed", default_missing_value = "./crunch_compressed")]
+    output_path: PathBuf,
+
     /// Compress leve
-    #[arg(long, num_args = 0..=1, default_missing_value="midium")]
+    #[arg(long, num_args = 0..=1, default_value="midium", default_missing_value="midium")]
     level: String,
 
     #[arg(long, num_args= 0..=1, default_missing_value = "compressed")]
@@ -153,6 +156,7 @@ fn main() -> Result<()> {
             args.videos.is_some(),
             BaseCompressOptions {
                 input_path: args.input_path.clone(),
+                output_path: args.output_path.clone(),
                 output_extension: args.videos.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
                 level: args.level.clone(),
@@ -167,6 +171,7 @@ fn main() -> Result<()> {
             args.images.is_some(),
             BaseCompressOptions {
                 input_path: args.input_path.clone(),
+                output_path: args.output_path.clone(),
                 output_extension: args.images.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
                 level: args.level.clone(),
@@ -181,6 +186,7 @@ fn main() -> Result<()> {
             args.audios.is_some(),
             BaseCompressOptions {
                 input_path: args.input_path.clone(),
+                output_path: args.output_path.clone(),
                 output_extension: args.audios.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
                 level: args.level.clone(),

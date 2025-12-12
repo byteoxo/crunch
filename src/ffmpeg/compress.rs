@@ -2,11 +2,15 @@ use super::progress_bar::init_progress_bar;
 use anyhow::{Context, Result, bail};
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub struct BaseCompressOptions {
+    /// the path of folder which store needed media files
     pub input_path: PathBuf,
+    /// the path of folder which store compressed media files
+    pub output_path: PathBuf,
     pub output_extension: String,
     pub output_prefix: Option<String>,
     pub level: String,
@@ -22,7 +26,8 @@ impl BaseCompressOptions {
             _ => panic!("Unknow media type"),
         };
         Self {
-            input_path: PathBuf::from("./"),
+            input_path: PathBuf::from("."),
+            output_path: PathBuf::from("."),
             output_extension,
             output_prefix: None,
             level: "medium".to_string(),
@@ -42,7 +47,8 @@ impl Default for ImageCompressOptions {
             quality: 1,
             compression_level: 6,
             base: BaseCompressOptions {
-                input_path: PathBuf::from("./"),
+                input_path: PathBuf::from("."),
+                output_path: PathBuf::from("."),
                 output_extension: "webp".into(),
                 output_prefix: Some("compressed".to_string()),
                 level: "medium".to_string(),
@@ -84,7 +90,8 @@ impl Default for VideoCompressOptions {
             preset: "good".to_string(),
             video_codec: "libvpx-vp9".to_string(),
             base: BaseCompressOptions {
-                input_path: PathBuf::from("./"),
+                input_path: PathBuf::from("."),
+                output_path: PathBuf::from("."),
                 output_extension: "webm".to_string(),
                 output_prefix: Some("compressed".to_string()),
                 level: "medium".to_string(),
@@ -129,7 +136,8 @@ impl Default for AudioCompressOptions {
             channels: None,
             sample_rate: None,
             base: BaseCompressOptions {
-                input_path: PathBuf::from("./"),
+                input_path: PathBuf::from("."),
+                output_path: PathBuf::from("."),
                 output_extension: "mp3".to_string(),
                 output_prefix: Some("compressed".to_string()),
                 level: "medium".to_string(),
@@ -166,6 +174,7 @@ impl AudioCompressOptions {
             sample_rate: self.sample_rate,
             base: BaseCompressOptions {
                 input_path: PathBuf::from("./"),
+                output_path: PathBuf::from("./"),
                 output_prefix: Some("compressed".to_string()),
                 output_extension: self.base.output_extension.clone(),
                 level: "midium".to_string(),
@@ -173,7 +182,10 @@ impl AudioCompressOptions {
         }
     }
 }
-
+/// Calculates the area of a rectangle.
+///
+/// # Arguments
+/// * `input` - The path of the single audio file
 pub fn compress_audio(
     ffmpeg: &Path,
     input: &Path,
@@ -183,29 +195,36 @@ pub fn compress_audio(
         bail!("FFmpeg executable not found at: {}", ffmpeg.display());
     }
 
-    // empty path as fallback
-    let parent = input.parent().unwrap_or(Path::new(""));
+    // Calculate relative path from input_path to input file
+    // e.g., input = "./a/b/girl.mp3", input_path = "./" → relative = "a/b/girl.mp3"
+    let relative_path = input
+        .strip_prefix(&options.base.input_path)
+        .unwrap_or(input);
 
+    // Get relative directory (parent of the file)
+    // e.g., "a/b/girl.mp3" → "a/b"
+    let relative_dir = relative_path.parent().unwrap_or(Path::new(""));
+
+    // Build output directory: output_path + relative directory
+    // e.g., "./crunch_compress" + "a/b" → "./crunch_compress/a/b"
+    let output_dir = options.base.output_path.join(relative_dir);
+
+    // Create output directory if it doesn't exist
+    fs::create_dir_all(&output_dir).context("Failed to create output directory")?;
+
+    // Build output filename
     let stem = input
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("output");
+
     let prefix = match &options.base.output_prefix {
         Some(p) => format!("{}_", p),
         None => String::new(),
     };
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let mut output = parent.join(new_filename);
-
-    // Avoid overwriting input file.
-    if input == output {
-        let new_filename = format!(
-            "compressed_{}{}.{}",
-            prefix, stem, options.base.output_extension
-        );
-        output = parent.join(new_filename);
-    }
+    let output = output_dir.join(new_filename);
 
     let mut args = vec![
         "-i".to_string(),
