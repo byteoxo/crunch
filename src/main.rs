@@ -48,7 +48,7 @@ struct Args {
     #[arg(short = 'i', long, num_args = 0..=1, default_value = ".", default_missing_value = ".")]
     input_path: PathBuf,
 
-    #[arg(short = 'o', long, num_args = 0..=1, default_value = "./crunch_compressed", default_missing_value = "./crunch_compressed")]
+    #[arg(short = 'o', long, num_args = 0..=1, default_value = "./", default_missing_value = "./")]
     output_path: PathBuf,
 
     /// Compress leve
