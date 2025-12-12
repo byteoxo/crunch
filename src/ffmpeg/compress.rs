@@ -308,7 +308,15 @@ pub fn compress_image(
         bail!("FFmpeg executable not found at: {}", ffmpeg.display());
     }
 
-    let parent = input.parent().unwrap_or(Path::new(""));
+    let relative_path = input
+        .strip_prefix(&options.base.input_path)
+        .unwrap_or(input);
+
+    let relative_dir = relative_path.parent().unwrap_or(Path::new(""));
+    let output_dir = options.base.output_path.join(relative_dir);
+
+    //
+    fs::create_dir_all(&output_dir).context("Failed to create output directory")?;
 
     let stem = input
         .file_stem()
@@ -320,7 +328,7 @@ pub fn compress_image(
     };
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let mut output = parent.join(new_filename);
+    let mut output = output_dir.join(new_filename);
 
     // Avoid overwriting output path.
     if input == output {
@@ -328,7 +336,7 @@ pub fn compress_image(
             "compressed_{}{}.{}",
             prefix, stem, options.base.output_extension
         );
-        output = parent.join(new_filename);
+        output = output_dir.join(new_filename);
     }
 
     let result = Command::new(ffmpeg)
@@ -401,8 +409,13 @@ pub fn compress_video(
         bail!("FFmpeg executable not found at: {}", ffmpeg.display());
     }
 
-    // empty path as fallback
-    let parent = input.parent().unwrap_or(Path::new(""));
+    let relative_path = input
+        .strip_prefix(&options.base.input_path)
+        .unwrap_or(input);
+    let relative_dir = relative_path.parent().unwrap_or(Path::new(""));
+    let output_dir = options.base.output_path.join(relative_dir);
+    //
+    fs::create_dir_all(&output_dir).context("Failed to create output directory")?;
 
     let prefix = match &options.base.output_prefix {
         Some(p) => format!("{}_", p),
@@ -415,7 +428,7 @@ pub fn compress_video(
         .unwrap_or("output");
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let mut output = parent.join(new_filename);
+    let mut output = output_dir.join(new_filename);
 
     // Avoid overwriting output path
     if input == output {
@@ -423,7 +436,7 @@ pub fn compress_video(
             "compressed_{}{}.{}",
             prefix, stem, options.base.output_extension
         );
-        output = parent.join(new_filename);
+        output = output_dir.join(new_filename);
     }
 
     //  Ensure input path is valid
