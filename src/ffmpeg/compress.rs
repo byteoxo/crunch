@@ -59,7 +59,7 @@ impl ImageCompressOptions {
             "low" => (5, 4),     // Low compression = high quality
             "medium" => (30, 5), // Balanced
             "high" => (60, 6),   // High compression = smaller size
-            _ => (30, 5),              // Default to medium
+            _ => (30, 5),        // Default to medium
         };
 
         Self {
@@ -142,9 +142,9 @@ impl AudioCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
         // bitrate: higher = better quality, larger file
         let bitrate = match base.level.as_str() {
-            "low" => "192k".to_string(), // Low compression = high quality
+            "low" => "192k".to_string(),    // Low compression = high quality
             "medium" => "128k".to_string(), // Balanced
-            "high" => "64k".to_string(), // High compression = smaller size
+            "high" => "64k".to_string(),    // High compression = smaller size
             _ => "128k".to_string(),
         };
 
