@@ -6,9 +6,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub struct BaseCompressOptions {
+    pub input_path: PathBuf,
     pub output_extension: String,
     pub output_prefix: Option<String>,
-    pub level: Option<String>,
+    pub level: String,
 }
 
 impl BaseCompressOptions {
@@ -21,9 +22,10 @@ impl BaseCompressOptions {
             _ => panic!("Unknow media type"),
         };
         Self {
+            input_path: PathBuf::from("./"),
             output_extension,
             output_prefix: None,
-            level: Some("medium".to_string()),
+            level: "medium".to_string(),
         }
     }
 }
@@ -40,9 +42,10 @@ impl Default for ImageCompressOptions {
             quality: 1,
             compression_level: 6,
             base: BaseCompressOptions {
+                input_path: PathBuf::from("./"),
                 output_extension: "webp".into(),
                 output_prefix: Some("compressed".to_string()),
-                level: Some("medium".to_string()),
+                level: "medium".to_string(),
             },
         }
     }
@@ -52,10 +55,10 @@ impl ImageCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
         // quality: lower = better quality (webp qscale)
         // compression_level: 0-6, higher = more compression effort
-        let (quality, compression_level) = match base.level.as_deref() {
-            Some("low") => (5, 4),     // Low compression = high quality
-            Some("medium") => (30, 5), // Balanced
-            Some("high") => (60, 6),   // High compression = smaller size
+        let (quality, compression_level) = match base.level.as_str() {
+            "low" => (5, 4),     // Low compression = high quality
+            "medium" => (30, 5), // Balanced
+            "high" => (60, 6),   // High compression = smaller size
             _ => (30, 5),              // Default to medium
         };
 
@@ -81,9 +84,10 @@ impl Default for VideoCompressOptions {
             preset: "good".to_string(),
             video_codec: "libvpx-vp9".to_string(),
             base: BaseCompressOptions {
+                input_path: PathBuf::from("./"),
                 output_extension: "webm".to_string(),
                 output_prefix: Some("compressed".to_string()),
-                level: Some("medium".to_string()),
+                level: "medium".to_string(),
             },
         }
     }
@@ -93,10 +97,10 @@ impl VideoCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
         // crf: 0-63 for VP9, lower = better quality
         // preset: "good", "best", "realtime" for libvpx-vp9
-        let (crf, preset) = match base.level.as_deref() {
-            Some("low") => (24, "good".to_string()), // Low compression = high quality
-            Some("medium") => (33, "good".to_string()), // Balanced
-            Some("high") => (42, "good".to_string()), // High compression = smaller size
+        let (crf, preset) = match base.level.as_str() {
+            "low" => (24, "good".to_string()), // Low compression = high quality
+            "medium" => (33, "good".to_string()), // Balanced
+            "high" => (42, "good".to_string()), // High compression = smaller size
             _ => (33, "good".to_string()),
         };
 
@@ -125,9 +129,10 @@ impl Default for AudioCompressOptions {
             channels: None,
             sample_rate: None,
             base: BaseCompressOptions {
+                input_path: PathBuf::from("./"),
                 output_extension: "mp3".to_string(),
                 output_prefix: Some("compressed".to_string()),
-                level: Some("medium".to_string()),
+                level: "medium".to_string(),
             },
         }
     }
@@ -136,10 +141,10 @@ impl Default for AudioCompressOptions {
 impl AudioCompressOptions {
     pub fn with_base(base: BaseCompressOptions) -> Self {
         // bitrate: higher = better quality, larger file
-        let bitrate = match base.level.as_deref() {
-            Some("low") => "192k".to_string(), // Low compression = high quality
-            Some("medium") => "128k".to_string(), // Balanced
-            Some("high") => "64k".to_string(), // High compression = smaller size
+        let bitrate = match base.level.as_str() {
+            "low" => "192k".to_string(), // Low compression = high quality
+            "medium" => "128k".to_string(), // Balanced
+            "high" => "64k".to_string(), // High compression = smaller size
             _ => "128k".to_string(),
         };
 
@@ -160,9 +165,10 @@ impl AudioCompressOptions {
             channels: self.channels,
             sample_rate: self.sample_rate,
             base: BaseCompressOptions {
+                input_path: PathBuf::from("./"),
                 output_prefix: Some("compressed".to_string()),
                 output_extension: self.base.output_extension.clone(),
-                level: Some("midium".to_string()),
+                level: "midium".to_string(),
             },
         }
     }

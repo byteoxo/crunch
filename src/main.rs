@@ -8,7 +8,7 @@ use ffmpeg::{
     AudioCompressOptions, BaseCompressOptions, ImageCompressOptions, VideoCompressOptions,
     compress_all_audios, compress_all_images, compress_all_videos, get_ffmpeg,
 };
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use utilities::{get_audio_files, get_image_files, get_video_files};
 
 #[derive(Parser, Debug)]
@@ -46,11 +46,11 @@ struct Args {
 
     /// Path to process (default: current directory)
     #[arg(short = 'i', long, num_args = 0..=1, default_missing_value = ".")]
-    input: Option<String>,
+    input_path: PathBuf,
 
     /// Compress leve
     #[arg(long, num_args = 0..=1, default_missing_value="midium")]
-    level: Option<String>,
+    level: String,
 
     #[arg(long, num_args= 0..=1, default_missing_value = "compressed")]
     prefix: Option<String>,
@@ -68,7 +68,8 @@ struct Args {
     audios: Option<String>,
 }
 
-fn process_images(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions) -> Result<()> {
+fn process_images(ffmpeg: &Path, base_options: BaseCompressOptions) -> Result<()> {
+    let path = base_options.input_path.as_path();
     let images = get_image_files(path);
     let count = images.len();
 
@@ -89,7 +90,8 @@ fn process_images(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions)
     Ok(())
 }
 
-fn process_videos(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions) -> Result<()> {
+fn process_videos(ffmpeg: &Path, base_options: BaseCompressOptions) -> Result<()> {
+    let path = base_options.input_path.as_path();
     let videos = get_video_files(path);
     let count = videos.len();
 
@@ -110,7 +112,8 @@ fn process_videos(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions)
     Ok(())
 }
 
-fn process_audios(ffmpeg: &Path, path: &Path, base_options: BaseCompressOptions) -> Result<()> {
+fn process_audios(ffmpeg: &Path, base_options: BaseCompressOptions) -> Result<()> {
+    let path = base_options.input_path.as_path();
     let audios = get_audio_files(path);
     let count = audios.len();
 
@@ -136,8 +139,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     // Resolve the working path
-    let path_str = args.input.as_deref().unwrap_or("./");
-    let path = Path::new(path_str);
+    let path = args.input_path.as_path();
 
     if !path.exists() {
         anyhow::bail!("Path does not exist: {}", path.display());
@@ -150,6 +152,7 @@ fn main() -> Result<()> {
         (
             args.videos.is_some(),
             BaseCompressOptions {
+                input_path: args.input_path.clone(),
                 output_extension: args.videos.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
                 level: args.level.clone(),
@@ -163,6 +166,7 @@ fn main() -> Result<()> {
         (
             args.images.is_some(),
             BaseCompressOptions {
+                input_path: args.input_path.clone(),
                 output_extension: args.images.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
                 level: args.level.clone(),
@@ -176,6 +180,7 @@ fn main() -> Result<()> {
         (
             args.audios.is_some(),
             BaseCompressOptions {
+                input_path: args.input_path.clone(),
                 output_extension: args.audios.clone().unwrap_or_default(),
                 output_prefix: args.prefix.clone(),
                 level: args.level.clone(),
@@ -191,15 +196,15 @@ fn main() -> Result<()> {
 
     // Process media
     if is_process_images {
-        process_images(&ffmpeg, path, image_base_options)?;
+        process_images(&ffmpeg, image_base_options)?;
     }
 
     if is_process_videos {
-        process_videos(&ffmpeg, path, video_base_options)?;
+        process_videos(&ffmpeg, video_base_options)?;
     }
 
     if is_process_audios {
-        process_audios(&ffmpeg, path, audio_base_options)?;
+        process_audios(&ffmpeg, audio_base_options)?;
     }
 
     Ok(())
