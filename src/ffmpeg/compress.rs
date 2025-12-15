@@ -224,7 +224,15 @@ pub fn compress_audio(
     };
 
     let new_filename = format!("{}{}.{}", prefix, stem, options.base.output_extension);
-    let output = output_dir.join(new_filename);
+    let mut output = output_dir.join(new_filename);
+
+    if input == output {
+        let new_filename = format!(
+            "compressed_{}{}.{}",
+            prefix, stem, options.base.output_extension
+        );
+        output = output_dir.join(new_filename);
+    }
 
     let mut args = vec![
         "-i".to_string(),
